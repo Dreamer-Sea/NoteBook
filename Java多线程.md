@@ -88,6 +88,53 @@ synchronized (obj){
 ```
 当前线程调用wait()方法只会释放当前共享变量上的锁，不影响当前线程上其它共享变量的锁。
 
+wait(long timeout)方法：
+能给wait方法设置超时参数，如果线程在被挂起后没有在timeout的时间内被唤醒，那该方法会因为超时而返回。
+
 2. notify()方法
+一个线程在调用了共享变量的notify()方法后，会随机唤醒一个在该共享变量上因调用wait系列方法而被挂起的线程。唤醒后的线程会变为就绪状态，只有在线程获得了共享变量的监视器锁才能继续执行。
+注意：只有当前线程获得了共享变量的监视器锁后，才可以调用共享变量的notify()方法，否则会抛出IllegalMonitorStateException异常。
+
 3. notifyAll()方法
+该方法会唤醒共享变量上所有因调用了wait系列方法而挂起的线程。
+
+## 等待线程执行终止的join方法
+```java
+public static void main(String[] args) throws InterruptedException{
+	Thread threadOne = new Thread(new Runnable(){
+		@Override
+		public void run(){
+			try{
+				Thread.sleep(1000);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+			System.out.println("child threadOne over!");
+		}
+	});
+	
+	Thread threadTwo = new Thread(new Runnable(){
+		@Override
+		public void run(){
+			try{
+				Thread.sleep(1000);
+			}catch(InterruptedException e){
+				e.printStackTrace();
+			}
+			System.out.println("child threadTwo over!");
+		}
+	});
+	
+	threadOne.start();
+	threadTwo.start();
+	
+	System.out.println("wait all child thread over!");
+	
+	//等待子线程执行完毕，返回
+	threadOne.join();
+	threadTwo.join();
+	
+	System.out.println("all child thread over!");
+}
+```
 
