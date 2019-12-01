@@ -53,4 +53,10 @@ protected void onCreate(Bundle savedInstanceState) {
 - onDestroy()：该方法在Activity被销毁之前调用，之后Activity的状态将变为销毁状态。
 - onRestart()：该方法在Activity由停止状态变为运行状态之前调用，也就是Activity被重新启动了。
 
+### 启动方式
+在AndroidManifest.xml通过 <activity> 标签指定 android: launchMode 属性来选择启动模式。
+- standard：默认的启动方式。每当启动一个新的活动，它就会在返回栈中入栈。对于使用standard模式的activity，系统不会在乎这个activity是否已经在返回栈中存在，每次启动都会创建该Activity的一个新的实例。
+- singleTop：发现当前Activity在栈顶的话，就不会创建新的Activity。
+- singleTask：如果返回栈中存在目标Activity，那么目标Activity前的Activity都会被出栈，然后目标Activity就到了栈顶。
+-  singleInstance：声明为该启动方式的Activity会启用一个新的返回栈(任务栈)，该栈只会存放该Activity。如果同一个App中有多个Activity使用该运行方式，那么就会有一一对应的多个返回栈。
 
