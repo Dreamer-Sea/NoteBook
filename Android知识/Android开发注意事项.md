@@ -60,3 +60,16 @@ protected void onCreate(Bundle savedInstanceState) {
 - singleTask：如果返回栈中存在目标Activity，那么目标Activity前的Activity都会被出栈，然后目标Activity就到了栈顶。
 -  singleInstance：声明为该启动方式的Activity会启用一个新的返回栈(任务栈)，该栈只会存放该Activity。如果同一个App中有多个Activity使用该运行方式，那么就会有一一对应的多个返回栈。
 
+## Fragment的生命周期
+### 原理
+- 运行状态：Fragment可见，且它所关联的Activity正处于运行状态。
+- 暂停状态：与Fragment关联的Activity处于暂停状态。
+- 停止状态：与Fragment关联的Activity处于停止状态，或Fragment不可见的时候。
+- 销毁状态：与Fragment关联的Activity处于销毁状态，或通过调用FragmentTransaction的remove方法和replace方法将碎片从Activity中移除，但在事务提交前未调用addToBackStack方法。
+
+### 具体方法
+- onAttach()：当Fragment和Activity建立关系的时候调用。
+- onCreateView()：当Fragment加载布局的时候调用。
+- onActivityCreated()：当Fragment和与之关联的Activity完全创建完毕的时候调用。
+- onDestroyView()：当Fragment中的布局被移除的时候调用。
+- onDetach()：当Fragment和Activity解除关联的时候调用。
