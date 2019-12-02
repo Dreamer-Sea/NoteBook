@@ -55,3 +55,90 @@ public static void main(String[] args){
 
 ## 单例模式
 对全局可见的对象或全局变化的对象使用单例模式，保证整个程序中有且仅有该类的一个实例对象。
+### 实现方式
+- 懒汉模式：
+```java
+public class LazySingleton{
+	private static LazySingleton instance;
+	private LazySingleton(){}
+	public static synchronized LazySingleton getInstance(){
+		if (instance == null){
+			instance = new LazySingleton();
+		}
+		return instance;
+	}
+}
+```
+- 饿汉模式：
+```java
+public class HungrySingleton{
+	private static HungrySingleton instance = new HungtySingleton();
+	private HungrySingleton(){}
+	public static HungerySingleton getInstance(){
+		return instance;
+	} 
+}
+```
+- 静态内部类：
+```java
+public class Singleton{
+	private static class SingletonHolder{
+		private static final Singleton INSTANCE = new Singleton();
+	}
+	private Singleton(){}
+	public static final Singleton getInstance(){
+		return SingletonHolder.INSTANCE;
+	}
+}
+```
+- 双重验证锁
+```java
+public class Lock2Singleton{
+	private volatile static  instance;
+	private Lock2Singleton(){}
+	public static Lock2Singleton getInstance(){
+		if (instance == null){
+			synchronized(Lock2Singleton.class){
+				if (instance == null) instance = new Lock2Singleton();
+			}
+		}
+		return instance;
+	}
+}
+```
+
+## 建造者模式：
+该模式关注对象的创建过程(对象的各个部分是怎么创建的)，而工厂模式关注的是对象。
+### 组成部分
+- Product：要创建的对象。
+- Builder：建造器，描述如何建造对象的接口。
+- ConcreteBuilder：建造器的实现类，对象各个部分的具体实现。
+- Director：负责使用Builder接口的对象。同一个Product虽然有相同的组件，但是组件在建造过程中的顺序可能有不同，Director对象负责安排组件的先后顺序。
+
+## 原型模式
+使用这个设计模式的类要实现Cloneable接口。有的时候程序需要以类的某个对象作为新的开始起点，而重新初始化一个对象不太方便，所以实现Cloneable接口，实现对对象的拷贝。
+
+## 适配器模式
+原始类和目标类之间存在兼容问题，通过对原始类进行扩展，构建一个适配器类，达到原始类和目标类兼容运行。当开发者想把两个类的功能结合的时候，为了减少代码的重复以及开发的可维护，就通过使用适配器类来组合两个类，使得适配器能够拥有两个类中开发者想要的功能。
+### 类型
+- 类适配器
+- 对象适配器
+- 接口适配器
+
+## 装饰者模式
+在基于‘对修改封闭，对扩展开放’的原则下，对原始类的功能进行扩展。
+
+## 代理模式
+使用构造器类，间接的使用原始类的功能。该设计模式仅改变了访问的方式，而没有改变实际的实现方式。
+
+## 外观模式
+将多个类的访问整合到一个类中，其它对象只需要通过访问这个类的对象就能够执行一系列操作，而不需要知道内部的具体实现。参考Java封装的思想。
+
+## 桥接模式
+设计一个桥接类，该类能够根据前端用户的需求调用不同的后端实现。加大了调用部分和实现部分的解耦程度。
+
+## 组合模式
+用树形结构去搭建程序。使得针对复杂对象和简单对象的操作有一致性。
+
+## 享元模式
+复用已有的资源，减少资源的创建和销毁。
