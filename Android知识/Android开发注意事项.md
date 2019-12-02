@@ -73,3 +73,25 @@ protected void onCreate(Bundle savedInstanceState) {
 - onActivityCreated()：当Fragment和与之关联的Activity完全创建完毕的时候调用。
 - onDestroyView()：当Fragment中的布局被移除的时候调用。
 - onDetach()：当Fragment和Activity解除关联的时候调用。
+
+## 广播机制
+### 分类
+- 标准广播：完全异步执行，所有的广播接收器几乎都会在同一时刻接收到这条广播信息。效率高，但是无法截停。
+- 有序广播：同步执行。在广播发出后，同一时刻只会有一个广播接收器能够接收这条广播消息。优先级高的广播接收器能够先收到广播消息。
+
+### 注册方式
+- 静态注册：在AndroidManifest.xml文件中注册。这种方式App不启动也能接收到广播。
+- 动态注册：在代码中注册。这种方法需要App启动才能够接收到广播。
+
+### 注意
+Android 8.0 之后对广播做出了改变。建议使用动态注册的方式注册广播。
+```java
+Intent intent=new Intent("com.example.cc.broadcasttest.MY_BROADCAST");
+        //ComponentName("当前类的包名","包名.这条广播的接收器的类名")
+intent.setComponent(new ComponentName("com.example.cc.broadcasttest",
+                "com.example.cc.broadcasttest.MyBroadcastReceiver"));
+//发送标准广播
+sendBroadcast(intent);
+```
+
+
