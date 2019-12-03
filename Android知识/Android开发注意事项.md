@@ -94,4 +94,8 @@ intent.setComponent(new ComponentName("com.example.cc.broadcasttest",
 sendBroadcast(intent);
 ```
 
-
+## 持久化
+### 类型：
+- 文件：将数据原封不动的保存在文件中。使用Context类中的openFileOutput方法，传入两个参数，第一个参数表示文件名；第二个参数表示文件的操作模式，可选的有：MODE_APPEND(如果文件存在则直接附加)，MODE_PRIVATE(默认的，文件存在则覆盖)。
+- SharedPreference：
+- 数据库：
