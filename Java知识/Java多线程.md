@@ -4,13 +4,37 @@
 ## 进程和线程的概念
 进程是代码在数据集合上的一次运行，是系统进行资源分配和调度的基本单位，线程则是进程的一个执行路径，一个进程中最少有一个线程，进程中多个线程共享进程的资源。
 
-## 程序计数器
-每一个线程都有一个独占的程序计数器，负责记录线程当前要执行的指令地址。在多线程中，主要用来记录线程上次让出CPU时，程序执行到了哪里，便于下次获得CPU时间片后
+## 线程的生命周期
+- New：刚创建。
+- Runnable：可运行，等待CPU时间片。
+- Running：正在运行。
+- Blocked：被阻塞挂起。
+- Dead：死亡(销毁)。
+### 状态之间的转移
+- Running -> Runnable：调用yield方法，在执行完任务后立马释放CPU资源。
+- Running -> Dead：
+	- run/call方法执行完毕。
+	- Exception。
+	- Error。
+	- 调用Stop方法。
+- Running -> Blocked：
+	- 调用Sleep方法。
+	- I/O阻塞。
+	- 等待同步锁。
+	- 等待通知。
+	- 调用suspend方法。
+- Blocked -> Runnable：
+	- sleep时间到。
+	- I/O方法返回。
+	- 获得同步锁。
+	- 收到通知。
+	- 线程resume。
 
-## 构建多线程的三种方式
-* 继承Thread类
-* 实现Runnable接口
-* 实现Callable接口
+## 构建多线程的四种方式
+- 继承Thread类
+- 实现Runnable接口
+- 实现Callable接口
+- 使用线程池
 
 ### 继承Thread类
 ```java
