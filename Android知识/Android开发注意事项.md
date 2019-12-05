@@ -99,3 +99,50 @@ sendBroadcast(intent);
 - 文件：将数据原封不动的保存在文件中。使用Context类中的openFileOutput方法，传入两个参数，第一个参数表示文件名；第二个参数表示文件的操作模式，可选的有：MODE_APPEND(如果文件存在则直接附加)，MODE_PRIVATE(默认的，文件存在则覆盖)。
 - SharedPreference：
 - 数据库：
+
+## 通知
+### 在Android 8 下的改动
+#### 需要构建通道(Channel)
+在Android 8及之后需要给通知设置通道，这样才能在通知栏中显示。
+```java
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                   String id = "myChannel";
+                   String name = "我的渠道";
+                   NotificationChannel channel = new NotificationChannel(id, name,NotificationManager.IMPORTANCE_DEFAULT);
+                   NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                   manager.createNotificationChannel(channel);
+                   Notification notification = new NotificationCompat.Builder(this, "default")
+                           .setChannelId(id)
+                           .setContentTitle("This is content title")
+                           .setContentText("This is content text")
+                           .setWhen(System.currentTimeMillis())
+                           .setSmallIcon(R.mipmap.ic_launcher)
+                           .setLargeIcon(BitmapFactory.decodeResource(getResources(),
+                                   R.mipmap.ic_launcher))
+                           .build();
+                   manager.notify(1, notification);
+               }else{
+                   NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                   Notification notification = new NotificationCompat.Builder(this, "default")
+                           .setContentTitle("This is content title")
+                           .setContentText("This is content text")
+                           .setWhen(System.currentTimeMillis())
+                           .setSmallIcon(R.mipmap.ic_launcher)
+                           .setLargeIcon(BitmapFactory.decodeResource(getResources(),
+                                   R.mipmap.ic_launcher))
+                           .build();
+                   manager.notify(1, notification);
+               }
+```
+#### 设置父Activity
+想通过Notification，从同一个App的Activity A跳转到Activity B，需要在AndroidManifest.xml中设置Activity B的父Activity 为Activity A。该方法能通过返回键从Activity B返回到Activity A。
+如果不想用户通过返回键返回上一个Activity，那么就要在AndroidManifest.xml中这样设置。
+```xml
+<activity
+    android:name=".ResultActivity"
+    android:launchMode="singleTask"
+    android:taskAffinity=""
+    android:excludeFromRecents="true">
+</activity>
+```
+
