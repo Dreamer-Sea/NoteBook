@@ -83,8 +83,8 @@ public static void main(String[] args)  {
 1. wait()方法
 
 当一个线程调用一个共享变量的wait()方法时，该调用线程会被阻塞挂起，直到发生下面几件事情之一才返回：
-	(1)其它线程调用了该共享对象的notify()方法或者notifyAll()方法；
-	(2)其它线程调用了该线程的interrupt()方法，该线程抛出InterruptedException异常。
+- 其它线程调用了该共享对象的notify()方法或者notifyAll()方法；
+- 其它线程调用了该线程的interrupt()方法，该线程抛出InterruptedException异常。
 
 注意：如果调用wait()方法的线程没有事先获取该对象的监视器锁，则调用wait()方法时会抛出IllegalMonitorStateException异常。
 
@@ -165,6 +165,11 @@ public static void main(String[] args) throws InterruptedException{
 ## sleep()方法让线程睡眠
 一个在运行中的线程能够调用Thread类中的sleep方法，使得该线程让出一定时间的执行权，但是该线程不会释放所持有的监视器锁。当时间到了后，线程就能回到就绪状态参与CPU的调度。如果在睡眠的过程中，有其它线程调用了该线程的interrupt()方法来中断该线程，那么该线程就会在调用sleep方法的地方抛出InterruptedException异常并返回。
 
+## sleep方法和wait方法的区别
+- sleep方法属于Thread类，wait方法属于Object类。
+- sleep方法能持有锁，wait方法释放锁。
+- sleep方法仅让出CPU时间，在设定的时间到了后会立马恢复到Runnable状态。
+
 ## yield()方法让线程让出CPU使用权
 该方法使得线程让出CPU使用权，并将自身变为就绪状态，而不是被阻塞挂起。如果该线程在让出了CPU使用权后，又立马获得了CPU的使用权，那么它会直接运行。
 
@@ -177,6 +182,12 @@ public static void main(String[] args) throws InterruptedException{
 ### boolean interrupted()方法：
 检测当前线程是否被中断，是的话返回true，否的话返回false。
 该方法如果发现当前线程被中断，则会清除中断标志。该方法是获取当前调用线程的中断标志而不是调用interrupted()方法的实例对象的中断标志。
+
+## 线程的终止
+- 正常运行结束。
+- 使用退出标志。
+- 使用Interrupt方法。
+- 使用stop方法(已被抛弃)。
 
 ## 线程的上下文切换
 CPU资源的分配是按照时间轮转的方法来的，所以当一个线程的时间片用完之后，就要让出CPU资源，变为就绪状态，与其它就绪状态的线程竞争CPU资源(获得时间片)。让出CPU资源的过程就叫做上下文切换。

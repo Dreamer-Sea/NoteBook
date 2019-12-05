@@ -1,5 +1,28 @@
-# 线程池ThreadPoolExecutor
+# 线程池
 [toc]
+
+## 阻塞队列
+### ArrayBlockingQueue
+基于数组实现的有界阻塞队列。按照先进先出的顺序对元素进行排序。
+
+### LinkedBlockingQueue
+基于链表实现的有界阻塞队列。对生产者端和消费者端分别采用了两个独立的锁来控制数据同步。
+
+### PriorityBlockingQueue
+按优先级排序的无界阻塞队列。
+
+### DelayQueue
+支持延时获取元素的阻塞队列。基于优先级队列实现的无界阻塞队列。
+
+### SynchronousQueue
+用于控制互斥操作的阻塞队列。是一个不存储元素的阻塞队列。
+
+### LinkedTransferQueue
+基于链表结构实现的无界阻塞队列。
+
+### LinkedBlockingDeque
+基于链表结构实现的双向阻塞队列。
+
 ## 线程池参数
 - corePoolSize：线程池核心线程个数。
 - workQueue：用于保存等待执行的任务的阻塞队列，例如ArrayBlockingQueue(基于数组的有界队列)，LinkedBlockingQueue(基于链表的无界队列)，SynchronousQueue(最多只有一个元素的同步队列)以及PriorityBlockingQueue(优先级队列)。
@@ -7,7 +30,7 @@
 - ThreadFactory：创建线程的工厂(一般默认就行)。
 - RejectedExecutionHandler： 饱和策略，当等待队列满了且线程个数达到maximumPoolSIze后采取的策略。
 	- AbortPolicy(直接抛出异常)；
-	- CallerRunsPolicy(使用调用者所在线程来运行任务，or )；
+	- CallerRunsPolicy(由调用提交任务的线程来执行这个任务 )；
 	- DiscardOldestPolicy(调用poll丢弃一个任务，执行当前任务)；
 	- DiscardPolicy(默默丢弃，不抛出异常)。
 - keepAliveTime：非核心线程的存活时间。
