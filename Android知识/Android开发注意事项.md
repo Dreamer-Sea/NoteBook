@@ -145,4 +145,5 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
     android:excludeFromRecents="true">
 </activity>
 ```
-
+## HttpURLConnection
+该方法在访问‘http://www.baidu.com’的时候，返回空。访问https开头的时候正常。OkHttp3能直接访问http。
