@@ -105,13 +105,16 @@ sendBroadcast(intent);
 #### 需要构建通道(Channel)
 在Android 8及之后需要给通知设置通道，这样才能在通知栏中显示。
 ```java
-if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+Intent intent = new Intent(this, NotificationActivity.class);
+                PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
+                NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                Notification notification;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                    String id = "myChannel";
                    String name = "我的渠道";
                    NotificationChannel channel = new NotificationChannel(id, name,NotificationManager.IMPORTANCE_DEFAULT);
-                   NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                    manager.createNotificationChannel(channel);
-                   Notification notification = new NotificationCompat.Builder(this, "default")
+                   notification = new NotificationCompat.Builder(this, id)
                            .setChannelId(id)
                            .setContentTitle("This is content title")
                            .setContentText("This is content text")
@@ -119,17 +122,28 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                            .setSmallIcon(R.mipmap.ic_launcher)
                            .setLargeIcon(BitmapFactory.decodeResource(getResources(),
                                    R.mipmap.ic_launcher))
+                           .setContentIntent(pi)
+                           .setAutoCancel(true)
+                           .setSound(Uri.fromFile(new File("/system/media/audio/ringtones/Luna.ogg")))
+                           .setVibrate(new long[]{0, 1000, 1000, 1000})
+                           .setLights(Color.WHITE, 1000, 1000)
+                           .setStyle(new NotificationCompat.BigPictureStyle().bigPicture(BitmapFactory.decodeResource(
+                                   getResources(), R.drawable.big_image)))
                            .build();
                    manager.notify(1, notification);
                }else{
-                   NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                   Notification notification = new NotificationCompat.Builder(this, "default")
+                   notification = new NotificationCompat.Builder(this, "default")
                            .setContentTitle("This is content title")
                            .setContentText("This is content text")
                            .setWhen(System.currentTimeMillis())
                            .setSmallIcon(R.mipmap.ic_launcher)
                            .setLargeIcon(BitmapFactory.decodeResource(getResources(),
                                    R.mipmap.ic_launcher))
+                           .setContentIntent(pi)
+                           .setAutoCancel(true)
+                           .setSound(Uri.fromFile(new File("/system/media/audio/ringtones/Luna.ogg")))
+                           .setVibrate(new long[]{0, 1000, 1000, 1000})
+                           .setLights(Color.WHITE, 1000, 1000)
                            .build();
                    manager.notify(1, notification);
                }
@@ -147,3 +161,11 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
 ```
 ## HttpURLConnection
 该方法在访问‘http://www.baidu.com’的时候，返回空。访问https开头的时候正常。OkHttp3能直接访问http。
+
+## 异步消息处理机制
+### 四个部分
+- Message：是信息在线程之间传递的主体。
+- Handler：用来发送和处理信息。
+- MessageQueue：消息队列。用来存放所有通过Handler发送的消息。
+- Looper：每个线程中的MessageQueue的管家。调用Looper中的loop方法就会使得Looper进入一个无限循环当中，每当发现MessageQueue中存在一条消息就会将它取出，并传递到Handler的handleMessage方法中，每个线程有且仅有一个Looper对象。
+
