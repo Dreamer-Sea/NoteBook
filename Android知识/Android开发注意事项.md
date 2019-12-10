@@ -169,3 +169,10 @@ Intent intent = new Intent(this, NotificationActivity.class);
 - MessageQueue：消息队列。用来存放所有通过Handler发送的消息。
 - Looper：每个线程中的MessageQueue的管家。调用Looper中的loop方法就会使得Looper进入一个无限循环当中，每当发现MessageQueue中存在一条消息就会将它取出，并传递到Handler的handleMessage方法中，每个线程有且仅有一个Looper对象。
 
+## 使用Intent传递复杂数据(对象)
+### 实现Serializable接口
+将使想要传递的对象的类实现Serializable接口，然后调用Intent的putExtra方法就能够像传递普通数据一样传递复杂数据。接收这个Intent的Activity就要调用Intent对象的getSerializableExtra方法来提取复杂对象。
+### 实现Parcelable接口
+与实现Serializable接口类似，但是接收的Activity需要调用getParcelableExtra方法来获取对象。
+### 两种方式的对比
+前者是对整个对象进行序列化，后者是将对象的字段给分解出来。后者效率更高。
