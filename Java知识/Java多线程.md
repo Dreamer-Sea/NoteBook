@@ -5,11 +5,12 @@
 进程是代码在数据集合上的一次运行，是系统进行资源分配和调度的基本单位，线程则是进程的一个执行路径，一个进程中最少有一个线程，进程中多个线程共享进程的资源。
 
 ## 线程的生命周期
-- New：刚创建。
-- Runnable：可运行，等待CPU时间片。
-- Running：正在运行。
-- Blocked：被阻塞挂起。
-- Dead：死亡(销毁)。
+- NEW：刚创建。
+- RUNNABLE：可运行，等待CPU时间片。
+- BLOCKED：被阻塞挂起。
+- WAITING：线程调用了这些方法：Object.wait，Thread.join，LockSupport.park。
+- TIMED_WAITING：调用了前者那些方法的限时版。
+- TERMINATED：死亡(销毁)。
 ### 状态之间的转移
 - Running -> Runnable：调用yield方法，在执行完任务后立马释放CPU资源。
 - Running -> Dead：
@@ -299,4 +300,8 @@ public class ThreadLocalTest {
 
 默认情况下ThreadLocal变量不支持继承，即子线程不能获得父线程的本地变量。如果想要子线程能够获得父线程的本地变量就要使用InheritableThreadLocal类，子线程获得是父线程本地变量的副本。
 
-
+## 线程锁死
+线程所需的条件永远无法成立，或者其它线程无法唤醒这个线程，从而使它一致处于非运行状态。
+### 类型
+- 信号丢失锁死：没有对应的通知来将等待的线程唤醒。
+- 嵌套监视器锁死：内层锁被唤醒(Y.wait)，但是外层锁没被唤醒，但是通知线程没有获得外层锁X，所以不能用Y.notifyAll来唤醒等待线程。
