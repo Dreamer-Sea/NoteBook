@@ -92,3 +92,35 @@ ApplicationContext的优缺点
 优点：一次性加载了所有的Bean，程序运行的顺序快；在程序启动的时候，就可以发现程序中存在的配置问题。
 缺点：占用内存大。
 
+## Spring中Bean的作用域有哪几种？
+- singleton：Bean在每个Spring IoC容器中只有一个实例，这是默认的作用域。
+- prototype：每次从容器中调用Bean，都会返回一个新的实例。
+- request：每次http请求都会创建一个Bean，该作用域仅适用于WebApplicationContext环境。
+- session：同一个HTTP Session共享一个Bean，不同Session使用不同Bean，仅适用于WebApplicationContext环境。
+- globalSession：一般用于Portlet应用环境，该作用域仅适用于WebApplicationContext环境。
+
+单例Bean和线程安全没有必然关系，只有无状态的Bean才可以在多线程环境下共享。
+
+### Spring中如何解决循环依赖
+Spring中对Bean是实例化是采用循环递归的方式，首先创建对象，再为其注入属性。即Spring在实例化一个bean的时候，首先递归实例化其所依赖的所有bean，知道某个bean没有依赖其它bean，此时就会将该实例返回，然后反递归的将获取到的bean设置位各个上层bean的属性。
+
+## Spring的事务
+- 编程式事务管理：使用TransactionTemplate实现。
+- 声明式事务管理：使用AOP实现。不需要在业务逻辑代码中掺杂事务管理，只需要在配置文件中做相关事务规则的声明或通过@Transaction注解的方式，便可以将事务规则应用到业务逻辑中。
+
+### Spring事务中有哪几种事务传播行为？
+**支持当前事务的情况：**
+- TransactionDefinition.PROPAGATION_REQUIRED：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。
+- TransactionDefinition.PROPAGATION_SUPPORTS：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+- TransactionDefinition.PROPAGATION_MANDATORY：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
+**不支持当前事务的情况：**
+- TransactionDefinition.PROPAGATION_REQUIRES_NEW：创建一个新的事务，如果当前存在事务，则把当前事务挂起。
+- TransactionDefinition.PROPAGATION_NOT_SUPPORTED：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+- TransactionDefinition.PROPAGATION_NEVER：以非事务方式运行，如果当前存在事务，则抛出异常。
+**其他情况：**
+- TransactionDefinition.PROPAGATION_NESTED：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行，如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED。
+
+## Spring MVC的消息处理流程
+通过前端控制器DispatchServlet来接收并且分发请求，然后通过HandlerMapping和HandlerAdapter找到具体可以处理该请求的Handler，经过逻辑处理，返回一个ModelAndView，经过ViewResolver处理，最后生成了一个View视图返回给了客户端。
+
+
