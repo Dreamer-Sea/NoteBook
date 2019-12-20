@@ -230,19 +230,85 @@ IntentService继承于Service，并给onBind()方法和onStartCommand()方法提
 使用后台服务的时候，如果发生了内存不足的情况，后台服务可能被回收，因为它的优先级比较低。但是使用前台服务(通知+服务)就能够提高服务的优先级。
 
 ## 内存管理
-### 垃圾回收
-与Java的GC类似。
+Android的内存管理跟具体使用的虚拟机有关(ART/Dalvik)，但是这两个虚拟机都使用了**分页**和**内存映射**来管理内存。
+### 分页
+这是一种操作系统用来管理存储器的技术，使得主存能够使用辅助存储器(磁盘)的数据。分页就是将磁盘中的数据分成固定大小的区块(页)。该机制能够实现**逻辑上连续，物理上离散**，避免了因为连续分配带来的碎片问题。
+### 内存映射
+进程中的**一个虚拟内存区域**与**一个磁盘上的对象**，映射关系(二者关联在一起)。
+### 内存回收
+与Java GC类似。
 ### 共享内存
-Android可以跨进程共享RAM页面(Pages)。
-- 所有应用程序进程都是从Zygote的现有进程分叉(fork)出来的。
-### 分配机制
-Android在为每个进程分配内存时，采用**弹性**的分配方式，即刚开始的时候并不会给应用分配很多的内存，而是给每个进程分配一个“够用”的内存大小。这个大小值是根据每一个设备的实际的物理内存大小来决定。随着应用的运行和使用，Android会为进程分配一些额外的内存。但是分配的大小是有限度的。Android需要最大限度的让更多的进程存货在内存中，以保证用户再次打开应用时减少应用的启动时间，提高用户体验。
-### 回收机制
-Android会根据以下两点来判断是否应该回收进程所占用的内存。
-第一是进程优先级，从高到低分别为：
-- 前台进程
-- 可见进程
-- 服务进程
-- 后台进程
-- 空进程
-第二是回收收益
+- Android应用的所有进程都是从Zygote进程fork出来的。该进程在系统启动并且载入通用的Framework代码及资源后开始启动。为了启动一个新的程序进程，系统会fork Zygote进程从而生成一个新的进程，然后在新的进程中加载并运行应用程序的代码。这使得大多数的RAM pages被用来分配给Framework的代码，同时使得RAM资源能够在应用的所有进程之间进行共享。
+- 大多数static的数据被映射到(mmapped)到一个进程中。这不仅仅使得同样的数据能够在进程间进行共享，并且使得它能够在需要的时候被paged out。
+- 大多数情况下，Android通过显式的分配内存区域来实现动态RAM区域能够在不同进程之间进行共享的机制。
+### 分配与回收内存
+- 每一个进程的Dalvik heap都反映了使用内存的占用范围，即Dalvik Heap Size，它可以随着需要进行增长，但是这个增长是有上限的。
+- 逻辑上讲Heap Size和实际物理意义上使用的内存大小是不对等的，Proportional Set Size(PSS)记录了应用程序自身占用以及其他进程进行共享的内存。
+### 限制应用的内存
+- 每个应用的Dalvik Heap Size都有最大阈值，超出的话会引起OutOfMemoryError错误。
+- ActivityManager.getMemoryClass()可以查询当前应用的Heap Size阈值，该方法返回一个整数，表明应用的Heap Size阈值是多少Mb(megabates)。
+### 应用切换
+- Android不会在切换系统的时候进行交换内存的操作，而是将分前台进程放到LRU Cache中。这样才能实现应用的快速切换。
+- 当系统进入Low Memory状态的时候，它会根据LRU规则与应用的优先级，内存占用情况以及其他因素综合评估后决定是否杀掉应用。
+### GC算法
+Android GC时能够使用的算法与Java一致。
+- Dalvik使用标记-清除算法。
+- ART使用多种算法，能够根据具体的需要使用不同的算法。
+
+## 线程间的通信
+### Hanlder
+用法：构造一个继承于Handler的类并且重写handleMessage方法，在主线程中实例化这个类，在子线程中调用Handler.sendMessage发送消息，回调主线程的Handler.handleMessage。
+```java
+public class DownloadActivity extends AppCompatActivity implements View.OnClickListener {
+    private TextView downloadTV;
+    private Button downloadBtn;
+    private Handler handler = new Handler() {					
+    	//主线程创建Handler并复写handleMessage
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            downloadTV.setText("下载完成");
+        }
+    };
+		public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.download_btn:
+                new Thread(new Runnable() {						
+                //子线程使用handler执行sendEmptyMessage发送Message（消息为空，可以使用Message.what指定消息类型，Message.obj指定消息主体）
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                       handler.sendEmptyMessage(1);
+                    }
+                }).start();
+                break;
+        }
+    }
+}
+```
+原理：这是Android中的异步消息处理机制，该机制主要包含了4个部分：Message，Handler，MessageQueue和Looper。Message是在线程之间被传递的信息；Handler负责消息的发送和处理；MessageQueue是消息队列，用来存放通过Handler发送的消息，只有一个；Looper是每个线程中的MessageQueue的管家，同样只有一个。
+子线程通过Handler的sendMessage方法将Message发送出去，然后这个Message就会到达MessageQueue中，Looper在启动后就会一直尝试从MessageQueue取出待处理的消息，并将获取到的消息交给主线程的Handler.handleMessage方法处理。
+
+### AsyncTask
+用法：构造一个继承于AsyncTask的MyAsyncTask类，并重写onPreExecute，doInBackground，onPostExecute方法。在主线程中实例化MyAsyncTask并调用execute，这样会依次执行onPreExecute，doInBackground和onPostExecute方法。其中onPreExcute方法和onPostExecute方法在主线程中执行，doInBackground方法在子线程中执行。doInBackground方法在执行publishProgress时会回调到主线程执行onProgressUpdate刷新UI。
+原理：执行MyAsyncTask.execute()时会在主线程执行onPreExecute，接着会使用SerialExecutor创建子线程，并在子线程中执行doInBackground，最终会执行postResult将doInBackground的
+执行结果result保存到Message中，使用Handler机制发送一个Message切换到主线程，取出result，判断当前异步任务是否已经被取消，如果已经被取消则会调用onCancelled()方法，如果没有被取消则会调用onPostExecute。当在执行doInBackground的过程中如果执行publishProgress时会使用Handler机制发送一个Message切换到主线程执行onProgressUpdate刷新UI。
+
+### runOnUiThread
+用法：子线程执行runOnUiThread方法，传入参数Runnable并重写run方法。
+原理：Handler会执行post将参数Runnable封装成一个Message并放入MessageQueue队列尾部，其中Message.callback = Runnable，Message.target = Handler。最终执行Handler.dispatchMessage判断Message.callback是否为空，如果为空则调用Handler.handleMessage，如果不为空则调用Handler.handleCallback。在handleCallback中调用Runnable复写的run方法，所以runOnUiThread的根本原理是Handler机制。
+
+## 动画
+### 帧动画(Drawable Animation)
+帧动画，即Frame动画。通过指定每一帧的图片和播放时间，有序的进行播放而形成的动画效果。
+### 视图动画(View Animation)
+视图动画，即补间动画，Tween动画。通过指定View的初始状态、变化时间、方式，通过一系列的算法来进行图形变换，从而形成动画效果，主要有Alpha，Scale，Translate和Rotate四种效果。仅在视图层实现了动画效果，并没有真正改变View的属性。
+### 属性动画(Property Animation)
+通过不断地改变View地属性，不断地重绘而形成地动画效果，属性值发生了真实地改变。
+
+## Margin和Padding的区别
+Margin指控件内部的内容(文字)与控件边缘的距离。Padding指子控件边缘与父控件边缘的距离。
