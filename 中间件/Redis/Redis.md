@@ -1,5 +1,30 @@
 # Redis
 
+# 数据结构
+Redis支持的数据结构有：
+1. String
+2. Hash
+3. List
+4. Set
+5. Sorted Set (ZSet)
+
+## Hash
+Hash类似于Java中的HashMap，同样是**数组 + 链表**的组合。它同样需要Rehash，但是与HashMap不同，HashMap在进行Rehash的时候需要暂停HashMap支持的所有操作，Redis为了高性能，采取了渐进式的Rehash，即维持新旧两个Hash，在Hash的操作中逐步完成Rehash。在ReHash的过程中，查询操作会在两个Hash上同时进行。
+
+Hash的value只能是字符串。
+
+缺点：存储消耗大于单个字符串。
+
+## List
+List类似Java中的LinkedList，但是并不是一个简单的LinkedList，而是快速链表(QuickList)。在数据量小的时候，List中的元素会存放在连续的内存空间中，并且进行了压缩(ZipList)。当元素数量上来后，Redis就会将多个ZipList以LinkedList的方式连接起来。
+List数据类型支持的lindex和ltrim需要对List进行遍历，所以属于慢操作。
+
+## Set
+Set可以看作特殊的Hash，即所有Set中的key的value都为NULL，而且key不存在重复。
+
+## ZSet
+Set的有序版本，在Set的基础上加入了Score字段来方便排序。底层数据结构是**跳跃列表**。
+
 
 
 # 管道(Pipeline)
