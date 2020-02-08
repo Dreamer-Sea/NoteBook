@@ -7,6 +7,10 @@ Redis支持的数据结构有：
 3. List
 4. Set
 5. Sorted Set (ZSet)
+6. Bitmap
+7. HyperLoglLog
+8. 布隆过滤器
+9. Geo
 
 ## Hash
 Hash类似于Java中的HashMap，同样是**数组 + 链表**的组合。它同样需要Rehash，但是与HashMap不同，HashMap在进行Rehash的时候需要暂停HashMap支持的所有操作，Redis为了高性能，采取了渐进式的Rehash，即维持新旧两个Hash，在Hash的操作中逐步完成Rehash。在ReHash的过程中，查询操作会在两个Hash上同时进行。
@@ -17,6 +21,7 @@ Hash的value只能是字符串。
 
 ## List
 List类似Java中的LinkedList，但是并不是一个简单的LinkedList，而是快速链表(QuickList)。在数据量小的时候，List中的元素会存放在连续的内存空间中，并且进行了压缩(ZipList)。当元素数量上来后，Redis就会将多个ZipList以LinkedList的方式连接起来。
+
 List数据类型支持的lindex和ltrim需要对List进行遍历，所以属于慢操作。
 
 ## Set
@@ -25,7 +30,46 @@ Set可以看作特殊的Hash，即所有Set中的key的value都为NULL，而且k
 ## ZSet
 Set的有序版本，在Set的基础上加入了Score字段来方便排序。底层数据结构是**跳跃列表**。
 
+## BItmap
+当存储二元数据的时候可以使用Bitmap而不是普通的key/value结构来存储。例如存储一个人一年(365天)的签到数据时，普通的key/value结构需要365个这样的数据结构，但是使用Bitmap只需要46个字节(1字节 = 8位，46字节 = 368位)。
 
+Bitmap实际上是byte数组，操作的时候需要使用getbit/setbit等命令。
+
+## HyperLogLog
+该数据结构的主要操作有：pfadd和pfcount，前者往集合中添加数据，后者计算集合中数据的个数。pfmerge用来合并pfcount后的数据。当数据量很大的时候，pfcount存在误差。
+
+## 布隆过滤器
+该数据结构可以被视作**非精确的**set结构，这里的’非精确的’指的是当判断该数据类型的集合中是否存在某个对象时，可能出现误判。
+
+布隆过滤器的错误率能够通过修改参数来降低。需要使用bf.reserve命令显式创建布隆过滤器，该命令有三个参数：key，error_rate和initial_size。error_rate越低，需要的空间越大。initial_size参数表示预计放入的元素数量，当实际数量超出这个数值时，**误判率会上升**。
+
+## Geo
+该数据结构能够存放地理信息，并且能够计算其中元素之间的距离。
+
+该数据结构能够实现’附近的人‘的功能。
+
+# key的搜索
+在Redis中搜索key可以用keys命令，但是该命令是返回所有的key，如果key的数量非常多，那么会造成Redis实例的暂停。
+
+所以就有另一个搜索key的命令--scan。
+scan的优点：
+1. 搜索是用**游标**实现的，**不会阻塞**线程；
+2. 能用limit参数，限制返回结果的最大条数；
+3. 提供模式匹配功能；
+4. 服务器不需要位游标**保存状态**；
+5. 返回的结果**可能有重复**；
+6. 在遍历的过程中如果有数据修改，改动后的数据能不能遍历时不确定的；
+7. 单次返回的结果是空并不意味着遍历结束，而要看返回的游标值是否未零。
+
+# 分布式锁
+在多线程的情况下，操作可能产生死锁，为了解决这个问题，set命令支持设置ex(expire，过期时间)和nx(“set if” not exists)。该命令是原子操作。
+```
+# lock:codehole 只是一个普通的字符串
+set lock:codehole true ex 5 nx
+```
+
+# 延迟队列
+Redis也能够使用**ZSet**聚合类型来实现延迟队列。将消息序列的**到期时间**作为ZSet中的**Score**。
 
 # 管道(Pipeline)
 ## 什么是RTT(Round Trip Time)
@@ -66,6 +110,7 @@ PUBLISH channel_name message
 
 # 将Redis当作LRU算法的缓存
 给Redis设置最大内存后，如果允许使用的内存不足了就会采取回收策略对内存进行回收。Redis采用的是近似LRU算法，只对部分key进行采样。
+
 ## 回收策略
 1. noeviction：返回错误。
 2. allkeys-lru：对所有的key采取LRU算法。
@@ -81,3 +126,26 @@ PUBLISH channel_name message
 
 # 分区
 Redis的分区，即将数据存放到不同Redis实例上。分区的意义在于分布式。
+
+# 通讯协议
+Redis的作者认为数据库系统的瓶颈一般不在网络流量，而在内部逻辑处理上，所以他在Redis上采用了浪费流量的文本协议--RESP(Redis Serialization Protocol)。
+
+# 持久化
+Redis支持两种持久化方式：
+1. RDB(镜像，全局持久化)；
+2. AOF(增量备份)。
+
+## RDB
+RDB这种备份方式是在主线程创建一个子进程，这个子进程对内存数据进行遍历且序列化到磁盘中。如果在RDB过程中，客户端执行了修改内存数据的命令，那么主进程会将需要修改的数据复制一份出来，对副本数据进行修改。
+
+## AOF
+这种备份方式不是序列化内存数据，而是存储Redis服务器的**顺序指令序列**。AOF文件中记录的是从Redis实例创建以来所有**修改性**指令序列。
+
+AOF重写：因为AOF可能存在大量重复的命令。开辟一个子进程对内存进行遍历转换成一系列Redis的操作指令，并将这些操作指令序列化到一个新的AOF日志文件中，这样能够合并重复的操作指令。序列化完后，再将序列化期间的增量AOF日志追加到这个新的AOF文件中。
+
+fsync：Redis在运行中可能因为意外而退出，这可能导致AOF操作失败。所以在Linux在提供了fsync函数，能够将指定文件的内容强制从内核缓存刷到磁盘。一般选择1秒执行一次fsync函数。
+
+## 混合持久化
+RDB需要遍历全部内存，大块写磁盘会加重系统负载；AOF的fsync是一个耗时的IO操作，它会降低Redis性能，同时也会增加系统IO负担。
+在Redis 4.0中采用混合持久化的方式，在Redis重启的时候，先加载RDB的内容，然后重放增量AOF日志。
+
