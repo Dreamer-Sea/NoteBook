@@ -11,6 +11,7 @@ Redis支持的数据结构有：
 7. HyperLoglLog
 8. 布隆过滤器
 9. Geo
+10. Stream
 
 ## Hash
 Hash类似于Java中的HashMap，同样是**数组 + 链表**的组合。它同样需要Rehash，但是与HashMap不同，HashMap在进行Rehash的时候需要暂停HashMap支持的所有操作，Redis为了高性能，采取了渐进式的Rehash，即维持新旧两个Hash，在Hash的操作中逐步完成Rehash。在ReHash的过程中，查询操作会在两个Hash上同时进行。
@@ -48,6 +49,9 @@ Bitmap实际上是byte数组，操作的时候需要使用getbit/setbit等命令
 
 该数据结构能够实现’附近的人‘的功能。
 
+## Stream
+主要用来当作消息队列的数据结构。能够在Stream上创建Consumer Group来消费其中的内容，Consumer Group的数量没有限制。每个Consumer Group上可以有多个Consumer，只要一个消息被Consumer Group中任意一个Consumer消费，就表示当前Consumer Group已经消费了这个消息。
+
 # key的搜索
 在Redis中搜索key可以用keys命令，但是该命令是返回所有的key，如果key的数量非常多，那么会造成Redis实例的暂停。
 
@@ -62,11 +66,32 @@ scan的优点：
 7. 单次返回的结果是空并不意味着遍历结束，而要看返回的游标值是否未零。
 
 # 分布式锁
+## 第一种：set命令 + lua脚本
 在多线程的情况下，操作可能产生死锁，为了解决这个问题，set命令支持设置ex(expire，过期时间)和nx(“set if” not exists)。该命令是原子操作。
+**获取锁**
 ```
 # lock:codehole 只是一个普通的字符串
 set lock:codehole true ex 5 nx
 ```
+**释放锁**
+```lua
+if redis.call("get",KEYS[1]) == ARGV[1] then
+    return redis.call("del",KEYS[1])
+else
+    return 0
+end
+```
+## 第二种：Redlock
+前一种方式只是用运用在一个Redis节点的上，不适合主从方式的Redis。
+
+** Redlock的使用**
+假设现在有5个主节点，分别在5个服务器上。
+1. 当客户端想要获得锁时，它会向这5个节点发送请求。请求超时时间一定要小于锁的失效时间；
+2. 要求客户端的使用时间(当前时间 - 获得锁的时间)小于锁的失效时间，且有(N / 2 + 1)个节点都得到锁；
+3. 如果获得锁成功，那么key的真正有效时间等于有效时间 - 获取锁所使用的时间。
+4. 如果锁获取失败，那么客户端应该在所有的Redis实例上解锁。
+
+
 
 # 延迟队列
 Redis也能够使用**ZSet**聚合类型来实现延迟队列。将消息序列的**到期时间**作为ZSet中的**Score**。
