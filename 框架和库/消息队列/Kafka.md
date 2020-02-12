@@ -1,6 +1,9 @@
 # Kafka
 [toc]
 
+# Kafka知识点
+![Kafka知识点](框架和库/消息队列/pictures/Kafka知识点.png)
+
 # Kafka中的重要基本概念
 1. Topic：主题，对信息源的分类。
 2. Partition：分区，Topic在物理上的分区。每个Partition都是一个有序的队列。Partition中的每条消息都会被分配一个有序的id(offset)。
