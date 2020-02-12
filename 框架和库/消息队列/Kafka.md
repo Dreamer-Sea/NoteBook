@@ -126,3 +126,6 @@ Kafka的网络框架是基于Java NIO封装的。
 1. Producer根据指定的partition方法，将消息发布到指定Topic的Partition里面。
 2. Kafka集群，接收到Producer发过来的消息后，将其持久化到硬盘，并按指定时长保留消息，而不关注消息是否被消费。
 3. Consumer，从Kafka集群pull数据，并控制获取消息的offset。至于消费的进度，可手动或自动提交给Kafka集群。
+
+# 幂等性
+Producer在发送消息的时候，给消息加上PID和SequenceID来避免重复。
