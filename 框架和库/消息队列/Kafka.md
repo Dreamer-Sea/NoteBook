@@ -14,29 +14,17 @@
 # Kafka是什么？
 Kafka是一个消息队列，可以实现**发布订阅模式**，在**异步通信**或者**生产者和消费者需要解耦**的场景中经常使用，可以对数据流进行处理等。
 
-## Kafka的主要特点
-1. 同时为发布和订阅提供高吞吐量。
-2. 可进行持久化操作。
-3. 分布式系统，易于向外扩展。
-4. 消息被处理的状态实在Consumer端维护，而不是由Broker端维护。当失败时，能够自平衡。
-5. 支持online和offline的场景。
-
-## Kafka的特性
-- 支持消息的**快速**持久化。
-- 支持**批量**读写信息。
-- 支持信息**分区**，并且支持**在线增加分区**，提高了并发能力。
-- 支持为每个分区创建多个副本。
-
 ## Kafka的设计要点
 1. 吞吐量
 	- 数据磁盘持久化：数据直接**顺序写入**磁盘。
 	- 零拷贝：减少IO操作。
 	- 数据批量发送：每次发送一个batch。
 	- 数据压缩。
-	- 每个Topic中可以有多个分区。
+	- 每个Topic中可以有多个分区，提高并发能力。
 2. 负载均衡
 	- Producer根据指定的算法，将消息发送到指定的Partition中。
 	- 每个Partition在不同的broker上都有replica。多个Partition需要选取出Leader partition，Leader partition负责读写，并由Zookeeper负责fail over。
+	- 相同Topic的多个Partition会分配给不同的Consumer进行拉取消息，进行消费。
 3. 拉取系统
 	- 简化Kafka设计。
 	- Consumer根据消费能力自主控制消息拉取速度。
@@ -45,6 +33,7 @@ Kafka是一个消息队列，可以实现**发布订阅模式**，在**异步通
 	- 通过Zookeeper管理Broker与Consumer的动态加入与离开。
 
 # Kafka为什么快？
+Kafka的速度也是影响Kafka吞吐量的要素之一。
 ## 顺序IO
 Kafka经常被用来最为大数据系统的一个组件，这就意味着它需要跟大量的数据打交道，使得它只能将数据存储在磁盘而不是内存中。而对磁盘而言，顺序IO的速度远远快于随机IO的速度。
 ## 内存映射文件
@@ -71,10 +60,14 @@ Kafka使用内存映射文件将内存与磁盘关联起来。存储数据的时
 - 日志压缩与保留策略：不管消费者是否已经消费了信息，Kafka都会保存这些信息，通过配置相应的保留策略，定时删除陈旧的消息。所谓日志压缩，就是定时进行相同Key值的合并，只保留最新的Key-Value值。
 
 # Kafka的副本机制
+每个Topic的每个Partition都有1个主副本(leader replica)以及0个或多个从副本(foller replica)。从副本会保持与主副本的数据同步，当主副本出问题时，从副本才能替代。
+
 ## 同步复制
 当所有的Follower副本都将消息复制完成，这条消息才会被认为是提交完成，一旦有一个Follower副本出现故障，就会导致信息无法提交，极大的影响到了系统的性能。
+
 ## 异步复制
 当Leader副本接收到生产者发送的消息后就认为当前信息提交成功。Follower副本异步的从Leader副本同步信息，但是不可以保证同步速度，当Leader副本突然宕机的时候，可能Follower副本中的消息落后太多，导致消息的丢失。
+
 ## ISR(In-Sync-Replica)集合
 可用副本集合，ISR集合表示**当前“可用”**且消息量与Leader相差不多的副本集合，需要满足如下条件：
 - 副本所在节点必须维持着与ZooKeeper的连接。
@@ -110,3 +103,23 @@ Kafka中的一个Topic可以认为是一类信息，每个Topic被分成多个Pa
 Kafka的网络框架是基于Java NIO封装的。
 1. KafkaClient，单线程Selector模型。
 2. KafkaServer，即Kafka Broker
+
+# Zookeeper在Kafka中的作用
+1. Broker在Zookeeper中的注册。
+2. Topic在Zookeeper中的注册。
+3. Consumer在Zookeeper中的注册。
+4. Producer负载均衡。
+5. Consumer负载均衡。
+6. 记录消息进度Offset。
+7. 记录Partition与Consumer的关系。
+
+# Kafka如何实现高可用？
+1. Zookeeper部署2N+1节点，形成Zookeeper集群，保证高可用。
+2. Kafka Broker部署集群。每个Topic的Partition基于副本机制，在Broker集群中复制，形成replica副本，保证消息存储的可靠性。每个replica副本，都会选择出一个leader分区，提供给客户端进行读写。
+3. Kafka Producer无需考虑集群。
+4. Kafka Consumer部署集群。每个Consumer分配其对应的Topic Partition，根据对应的分配策略。并且Consumer只从leader分区(Partition)拉取消息。另外，当有新的Consumer加入或者老的Consumer离开，都会将Topic Partition再均衡，重新分配给Consumer。
+
+# Kafka消息发送和消费的简化流程
+1. Producer根据指定的partition方法，将消息发布到指定Topic的Partition里面。
+2. Kafka集群，接收到Producer发过来的消息后，将其持久化到硬盘，并按指定时长保留消息，而不关注消息是否被消费。
+3. Consumer，从Kafka集群pull数据，并控制获取消息的offset。至于消费的进度，可手动或自动提交给Kafka集群。
