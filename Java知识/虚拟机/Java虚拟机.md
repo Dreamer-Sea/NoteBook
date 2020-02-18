@@ -70,15 +70,15 @@ JVM是一类虚拟机的统称，在Java开发中使用的JVM实现是HotSpot虚
 但因为新的垃圾收集器的出现(Parallel Scavenge)，使得一个独立的永久代(PermGen，Permanent Generation)的存在是必要的。
 
 **补充1：**方法区中存放有什么？
+
 - Klass系对象；
 - java.lang.Class对象；
 - 字符串常量；
 - 符号（Symbol/symbolOop）常量；
 - 常量池对象；
 - 方法对象；
-- 等等。
 
-** 补充2：**永久代的变更历程。
+**补充2：**永久代的变更历程。
 Java 6：方法区中包含的数据，除了JIT编译生成的代码放在native memory的CodeCache中外，其它的都在永久代中。
 Java 7：Symbol的存储从永久代移到了native memory中；把静态变量从instanceKlass末尾(PermGen中)移到了java.lang.Class对象的末尾(位于普通Java堆中)。
 Java 8：永久代被移除，用元空间(Metaspace)取代。
@@ -109,7 +109,3 @@ JVM自带的类加载器有三种：AppClassLoader，ExtClassLoader，BootStrapC
 
 ## 动态对象年龄判断
 如果Survivor空间中相同年龄所有对象的大小总和大于Surviror空间的一半，取这个年龄和MaxTenuringThreshold中更小的一个值，作为新的晋升年龄阈值。
-
-
-
-- 
