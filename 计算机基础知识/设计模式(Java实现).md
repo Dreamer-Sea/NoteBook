@@ -94,7 +94,7 @@ public class Singleton{
 - 双重验证锁
 ```java
 public class Lock2Singleton{
-	private volatile static  instance;
+	private volatile static instance;
 	private Lock2Singleton(){}
 	public static Lock2Singleton getInstance(){
 		if (instance == null){
