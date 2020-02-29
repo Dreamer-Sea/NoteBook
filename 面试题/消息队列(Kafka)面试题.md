@@ -1,4 +1,4 @@
-# 消息队列/Kafka面试题
+# 消息队列(Kafka)面试题
 
 [toc]
 
@@ -27,4 +27,7 @@ Kafka在consumer消费了一个信息之后就会将offset给提交(提交到Zoo
 1. topic中只有一个partition。
 2. producer将消息发送到同一个partition(指定partition)。
 
-
+# ZooKeeper在Kafka中的作用
+1. Kafka的正常运行少不了ZooKeeper，一些关键模块依赖于ZooKeeper。
+2. ZooKeeper存储原信息：consumerGroup/consumer、broker、Topic等。
+3. 在旧版本中，consumer和broker依赖于ZooKeeper，新版本中就broker依赖于ZooKeeper。
