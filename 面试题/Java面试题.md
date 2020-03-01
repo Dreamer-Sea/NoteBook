@@ -99,3 +99,13 @@ private Object readResolve() {
 3. 初始化零值。
 4. 设置对象头。
 5. 执行init方法。
+
+# 子类和父类的关系
+1. 子类不能获得父类的私有属性和私有方法。
+2. 子类在重写的时候，访问符的范围不能小于父类的访问符的范围。
+
+# synchronized关键字和ReentrantLock的区别
+1. 两者都是可重入锁。
+2. 前者依赖JVM，后者依赖于API。
+3. 后者支持的功能比前者多，如：非公平锁/公平锁、中断机制。
+4. 前者使用wait/notify/notifyAll实现等待/通知机制，后者使用newCondition/signal/signalAll实现等待/通知机制。
