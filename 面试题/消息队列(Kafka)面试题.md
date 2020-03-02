@@ -10,7 +10,7 @@ Kafka在consumer消费了一个信息之后就会将offset给提交(提交到Zoo
 2. 事务：保证原子性的写入多个分区。
 3. 流式EOS：流处理(读取-处理-写入)。
 
-# Kafka如何实现消息的不丢失
+# Kafka如何实现消息的不丢失(可靠性)
 1. ACK机制：
 	- ack = 0：不关心是否投递成功。
 	- ack = 1：收到broker发送的确认消息即可。
@@ -31,3 +31,8 @@ Kafka在consumer消费了一个信息之后就会将offset给提交(提交到Zoo
 1. Kafka的正常运行少不了ZooKeeper，一些关键模块依赖于ZooKeeper。
 2. ZooKeeper存储原信息：consumerGroup/consumer、broker、Topic等。
 3. 在旧版本中，consumer和broker依赖于ZooKeeper，新版本中就broker依赖于ZooKeeper。
+
+# 判断一个节点还活着的两个条件
+1. 节点必须可以维护和ZK的连接，ZK通过心跳机制检查每个节点的连接。
+2. 如果节点是个Follower，那它必须能及时地同步Leader的写操作，延时不能太久。
+
