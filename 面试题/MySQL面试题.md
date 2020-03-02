@@ -69,4 +69,3 @@ select * from information_schema.processlist；
 5. where不等于。
 6. or操作有至少一个字段没有索引。
 7. 需要回表的查询结果集过大(超过配置的范围)。
-

@@ -109,3 +109,21 @@ private Object readResolve() {
 2. 前者依赖JVM，后者依赖于API。
 3. 后者支持的功能比前者多，如：非公平锁/公平锁、中断机制。
 4. 前者使用wait/notify/notifyAll实现等待/通知机制，后者使用newCondition/signal/signalAll实现等待/通知机制。
+
+# GC的触发条件
+## Minor GC的触发条件
+当Eden区满时，触发Minor GC。
+## Full GC的触发条件
+1. 调用System.gc时，可能触发。
+2. 老年代空间不足。
+3. 方法区空间不足。
+4. 通过Minor GC后进入老年代的平均大小**大于**老年代的可用内存。
+5. Minor GC时，对象大小**大于**To区的可用内存时，且该对象大小**大于**老年代的可用内存大小。
+
+# 锁优化和膨胀过程
+1. 自旋锁
+2. 锁粗化
+3. 锁销除
+4. 偏向锁
+5. 轻量级锁
+6. 重量级锁
