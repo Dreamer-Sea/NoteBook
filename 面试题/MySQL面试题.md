@@ -24,8 +24,9 @@ SELECT * FROM slow_log where start_time > '2019/05/19 00:00:00';
 ```sql
 select * from information_schema.processlist；
 ```
+## explain命令查看慢的SQL语句的查询情况
 
-## 操作系统问题
+## 设置慢查询时间
 
 # 一张表，里面有 ID 自增主键，当 insert 了 17 条记录之后，删除了第 15,16,17 条记录，再把 MySQL 重启，再 insert 一条记录，这条记录的 ID 是 18 还是 15？
 这个需要分使用的数据引擎讨论。
