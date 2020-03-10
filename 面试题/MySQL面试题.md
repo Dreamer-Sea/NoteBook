@@ -84,3 +84,16 @@ select * from information_schema.processlist；
 **redo log**记录的是修改了数据库的SQL语句。
 **undo log**记录的是相应操作的逆操作的SQL语句。
 **bin log**记录的是数据库的变动。
+
+# 聚合函数(组函数)
+1. AVG：求平均数。
+2. COUNT：统计。
+3. MAX：求最大值。
+4. MIN：求最小值。
+5. SUM：求和。
+
+# 连接
+1. 内连接：连接两表共有的记录。
+2. 左外连：保留左表的所有记录。
+3. 右外连：保留右表的所有记录。
+4. 全外连：MySQL不支持全外连，需要使用union联合左外连和右外连。
