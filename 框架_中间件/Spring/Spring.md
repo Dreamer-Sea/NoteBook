@@ -1,4 +1,4 @@
-# Spring框架
+# Spring
 [toc]
 # 什么是控制反转(IoC，(Bean)装配)
 将对象间的依赖关系交给Spring容器来处理，使用配置文件来创建所依赖的对象，由**主动**创建对象变为**被动**创建对象，实现**解耦合**。使用@Autowired和@Resource来注入对象，被注入的对象必须被以下四个注解之一标注：
@@ -56,9 +56,41 @@ ApplicationContext的优缺点
 # 什么是依赖注入(DI)
 DI是从另一个角度描述IoC。IoC是一种设计思想，DI是一种具体实现。想要实现控制反转最关键的就是将对象A所依赖的对象B，通过DI的方式给到对象A。
 ## 依赖注入的三种实现方式
-1. 接口注入。
+1. 注解注入。
+```java
+@Controller
+public class UserController {
+    // 使用注解自动注入
+    @Autowired()
+    private UserService userService;
+    // do something
+}
+// 创建依赖对象
+@Service
+public class UserService {
+   // do something 
+}
+```
 2. 构造函数注入。
+```java
+public class UserController {
+    private UserService userService;
+    public UserController(UserService userService){
+        this.userService = userService;
+    }
+}
+```
 3. setter注入。
+```java
+public class UserController {
+    // 注入 UserService 对象
+    private UserService userService;
+    public void setUserService(UserService userService){
+        this.userService = userService;
+    }
+}
+```
+
 在Spring中仅使用**后两种**。
 
 # Spring中的核心模块
@@ -133,5 +165,15 @@ CGLib主要针对类实现代理，对是否实现接口无要求。原理是对
 
 # Spring MVC的消息处理流程
 通过前端控制器DispatchServlet来接收并且分发请求，然后通过HandlerMapping和HandlerAdapter找到具体可以处理该请求的Handler，经过逻辑处理，返回一个ModelAndView，经过ViewResolver处理，最后生成了一个View视图返回给了客户端。
+
+# JdbcTemplate和JDBC的区别
+JdbcTemplate是对JDBC的封装，前者比后者拥有更多的功能。
+
+JdbcTemplate的优点：
+1. 是线程安全的。
+2. 实例化操作比较简单，仅需要传递DataSource。
+3. 自动完成资源的创建和释放工作。
+4. 创建一次JdbcTemplate，到处可用，避免重复开发。
+
 
 
